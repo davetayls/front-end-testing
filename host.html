@@ -1,0 +1,63 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>testhost</title>
+		<style type="text/css">
+			body {
+				font-family: Arial, Helvetica, sans-serif;
+                overflow: hidden;
+				margin: 0;
+				padding: 0;
+			}
+			div {
+				background: #ccc;
+			}	
+            #infoBar {
+                display: none;
+            }
+			iframe {
+                height: 100%;
+				width: 100%;
+			}
+		</style>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+		<script type="text/javascript">
+			var currentUrl = "",
+                timer,
+                ifr = document.getElementById('testingSite');
+
+			function setUrl(url){
+				//if (url != currentUrl){
+					$("#testingSite").attr("src",url);
+					$("#currentUrl").text(url);
+					currentUrl = url;									
+				//}
+			};
+            function refresh(){
+                clearTimeout(timer);
+                timer = setTimeout(getUrl, 10000);
+            }
+			function getUrl(){
+                $.getJSON('host.js?' + new Date(), function(data){
+                    setUrl(data.url);
+                });
+			};
+			$().ready(function(){
+				$("#testingSite")
+                    .height($(window).height())
+                    .load(refresh);
+				getUrl()
+			});
+            $(window).mousemove(function(){
+                refresh();
+            });
+		</script>
+		
+	</head>
+	<body>
+		<div id="infoBar">
+			Current url: <span id="currentUrl"></span>
+		</div>
+		<iframe id="testingSite" width="400" height="400" src=""></iframe>
+	</body>
+</html>
