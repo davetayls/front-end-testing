@@ -621,12 +621,15 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
             return arg;
         },
         getValue: function(key) {
-            return this.get(key).values;   
+            var arg = this.get(key);   
+            return arg ? arg.values : [];
         },
         getSingleValue: function(key){
             var val = this.getValue(key)[0];
             if (val && val.length) {
                 return val;
+            } else {
+                return '';
             }
         }
 	};
