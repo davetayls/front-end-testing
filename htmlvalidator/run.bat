@@ -1,2 +1,2 @@
-java -jar ../lib/js.jar htmlvalidator.js url::%1
+@java -jar js.jar htmlvalidator.js url::%1
 pause

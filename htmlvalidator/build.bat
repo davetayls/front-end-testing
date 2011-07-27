@@ -1,7 +1,15 @@
-rmdir dist /s /q
-mkdir dist
-copy *.js dist\
-copy run.bat dist\
-call ..\lib\Rivet\Rivet.Console.exe dist
-java -jar ..\lib\compiler\compiler.jar --js dist\htmlvalidator.js --js_output_file dist\htmlvalidator.min.js
+cd ..
+rmdir htmlvalidator-dist /s /q
+mkdir htmlvalidator-dist
+
+copy htmlvalidator\*.js htmlvalidator-dist\
+copy htmlvalidator\*.json htmlvalidator-dist\
+
+copy htmlvalidator\run.bat htmlvalidator-dist\
+copy htmlvalidator\run-conf.bat htmlvalidator-dist\
+
+copy htmlvalidator\js.jar htmlvalidator-dist\
+call lib\Rivet\Rivet.Console.exe htmlvalidator-dist\
+java -jar lib\compiler\compiler.jar --js htmlvalidator-dist\htmlvalidator.js --js_output_file htmlvalidator-dist\htmlvalidator.min.js
+
 pause

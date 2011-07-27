@@ -1,23 +1,30 @@
-/*jslint browser: true, vars: true, white: true, forin: true, plusplus: true, indent: 4, evil: true */
-/*global define,require,sjs */
+/*jslint browser: true, vars: true, white: true, forin: true, plusplus: true, indent: 4 */
+/*global define,require,sjs,JSON */
 
 // display external url
-(function(){
+(function(global){
     'use strict';
 
     var validatorHost       = 'testing.local:8888',
-        validatorUrl        = 'http://' + validatorHost + '/?level=error&out=json&callback=setResult&doc=${url}',
-        urlArg              = sjs.arguments().arguments.url.values[0],
-        result,
-        validState          = 'failed',
-        validMessage,
-        resultErrors;
+        validatorUrl        = 'http://' + validatorHost + '/?level=error&out=json&doc=${url}',
+        debug               = sjs.args().getSingleValue('debug') === 'true',
+        urlArg              = sjs.args().getSingleValue('url'),
+        configPath          = sjs.args().getSingleValue('config');
 
     var WHITELIST = [
         'Legacy doctype'
     ];
-    var setResult = function(data){
-        result = data;
+    var getConfig = function(path) {
+        var json = sjs.file(path).readText();
+        if (debug) {
+            sjs.print('Loaded config:');
+            sjs.print(json);
+        }
+        if (json) {
+            return JSON.parse(json); 
+        }
+    };
+    var setResult = function(json){
     };
     var getValidationUrl = function(url) {
         return validatorUrl.replace('${url}', url);
@@ -65,16 +72,42 @@
         }
         return errors;
     };
-    result = sjs.get(getValidationUrl(urlArg));
-    // sjs.print(result);
-    if (result) {
-        eval(result);
-        resultErrors = siftErrors(result.url, result.messages);
-        validState = resultErrors.length === 0 ? 'passed' : 'failed';
-        validMessage = 'Validation for ' + result.url + ' has ' + validState;
-        if (validState === 'failed') {
-            throw validMessage;
+    var validateUrl = function(url) {
+        var result,
+            validState          = 'failed',
+            validMessage,
+            resultErrors;
+        result = sjs.get(getValidationUrl(url));
+        if (result) {
+            result = JSON.parse(result);
+            resultErrors = siftErrors(result.url, result.messages);
+            validState = resultErrors.length === 0 ? 'passed' : 'failed';
+            validMessage = 'Validation for ' + result.url + ' has ' + validState;
+            if (validState === 'failed') {
+                throw validMessage;
+            }
         }
-    }
+    };
 
-}());
+    var init = function() {
+        var config,
+            urls,
+            url,
+            i;
+
+        if (urlArg) {
+            validateUrl(urlArg);
+        } else if (configPath) {
+            config = getConfig(configPath);
+            WHITELIST = config.whiteList;
+            urls = config.urls;
+            for (i = 0; i < urls.length; i++) {
+                url = urls[i];
+                validateUrl(url);
+            }
+        }
+        sjs.print('HTML VALIDATION PASSED');
+    };
+    init();
+
+}(this));

@@ -23,6 +23,7 @@
 // UPDATE THE FOLLOWING
 var combinerFileName = "htmlvalidator.js";
 var includes = [];
+includes.push("json2.js");
 includes.push("sjs.js");
 includes.push("core.js");
 

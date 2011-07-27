@@ -28,20 +28,18 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
 //end sjs load 
 --------------------------------------------------------
 */
-/*jslint browser: true, vars: true, white: true, forin: true, plusplus: true, indent: 4, evil: true */
-/*global define,require,ActiveXObject,load,print,WScript,environment */
+/*jslint rhino: true, vars: true, white: true, forin: true, plusplus: true, indent: 4, evil: true */
+/*global define,require,ActiveXObject,WScript,environment */
 
 (function(global){
     'use strict';
 		
 	var commandLineArgs,
 		java,
-		javaFile,
 		javaSystem;
 
 	if (typeof global.java !== 'undefined'){
 		java = global.java;
-		javaFile = java.io.File;
 		javaSystem = java.lang.System;		
 	}
 	
@@ -49,10 +47,10 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
 	var sjs = {
 		version: '@SJS_VERSION',
 		fileSeparator : javaSystem ? javaSystem.getProperty('file.separator') : '\\',
-		arguments: function(){
+		args: function(){
 			if (!commandLineArgs){
 				if(java){
-					commandLineArgs = new sjs.Args(global.arguments,'::');
+					commandLineArgs = new sjs.Args(global['arguments'],'::');
 				}else if(ActiveXObject){
 					var items = [],
                         i;
@@ -73,6 +71,7 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
 			if (java){
                 return readUrl(url);
 			}else if (WScript){
+                throw 'Sorry this is not implemented yet';
             }
             
         },
@@ -106,31 +105,50 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
 
 	// arguments
 	sjs.Args = function(args,separator){
-		this.arguments = {};
+		this.args = {};
 		var length = args.length,
             i;
 		for (i = 0; i < length; i += 1) {
 			var keyValue = args[i].split(separator);
-			var arg = this.arguments[keyValue[0]];
+			var arg = this.args[keyValue[0]];
 			if (!arg) {
 				arg = new sjs.Arg(keyValue[0]);
 			}
 			arg.addValue(keyValue[1]);
-			if (!this.arguments[keyValue[0]]){
-				this.arguments[keyValue[0]] = arg;				
+			if (!this.args[keyValue[0]]){
+				this.args[keyValue[0]] = arg;				
 			}
 		}
 	};
 	sjs.Args.prototype = {
 		each: function(fn){
             var key;
-			for (key in this.arguments){
-				if(fn.call(this.arguments[key]) === false){
+			for (key in this.args){
+				if(fn.call(this.args[key]) === false){
 					break;
 				}					
 			}
 			return this;
-		}
+		},
+        get: function(key) {
+            var arg;
+            this.each(function(){
+                if (this.key === key) {
+                    arg = this;
+                    return false;
+                }
+            });
+            return arg;
+        },
+        getValue: function(key) {
+            return this.get(key).values;   
+        },
+        getSingleValue: function(key){
+            var val = this.getValue(key)[0];
+            if (val && val.length) {
+                return val;
+            }
+        }
 	};
 	sjs.Arg = function(key){
 		this.key = key;
@@ -149,7 +167,7 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
 	sjs.io = {};
 	sjs.io.File = function(path){
 		if (java){
-			this.javaFile = new javaFile(path);
+			this.javaFile = new java.io.File(path);
 		}
 		this.path = path;
 		this.contents = this.readText();		
@@ -157,10 +175,11 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
 	sjs.io.File.prototype = {
 		contents: null,
 		path: '',
-		append: function(s){
-			if (typeof arguments[0] === 'number'){
-				var lineNumber = arguments[0] === 0 ? 0 : arguments[0] -1;
-				return this.insertLine(lineNumber,arguments[1]);
+		append: function(s, ins){
+            var params = arguments;
+			if (typeof s === 'number'){
+				var lineNumber = s === 0 ? 0 : s -1;
+				return this.insertLine(lineNumber, ins);
 			}else{			
 				this.contents += s;
 			}
@@ -181,11 +200,15 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
 			return this;
 		},
 		readText: function(force){
+            var reader,
+                buffer,
+                line;
+
 			if (!this.contents || force){
 				this.contents = '';
 				if (java){
-					var reader = new java.io.FileReader(this.javaFile);
-					var buffer = new java.io.BufferedReader(reader);
+					reader = new java.io.FileReader(this.javaFile);
+					buffer = new java.io.BufferedReader(reader);
 					while((line = buffer.readLine())){
 				        this.contents += line + '\n';
 					}
