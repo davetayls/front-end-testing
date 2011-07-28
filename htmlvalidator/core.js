@@ -14,12 +14,16 @@
     var WHITELIST = [
         'Legacy doctype'
     ];
+    var log = function(message, force) {
+        if (debug || force) { sjs.print(message); }
+    };
+
+    log('STARTING VALIDATOR');
+
     var getConfig = function(path) {
         var json = sjs.file(path).readText();
-        if (debug) {
-            sjs.print('Loaded config:');
-            sjs.print(json);
-        }
+        log('Loaded config:');
+        log(json);
         if (json) {
             return JSON.parse(json); 
         }
@@ -73,18 +77,27 @@
         return errors;
     };
     var validateUrl = function(url) {
-        var result,
+        var validationUrl       = getValidationUrl(url),
+            result,
             validState          = 'failed',
             validMessage,
             resultErrors;
-        result = sjs.get(getValidationUrl(url));
+        log('Get url ' + url);
+        try {
+        result = sjs.get(validationUrl);
+        } catch(ex){
+            throw 'There was a timeout while trying to reach the validator at this url ' + validationUrl;
+        }
         if (result) {
+            log('Got a result from ' + url);
             result = JSON.parse(result);
             resultErrors = siftErrors(result.url, result.messages);
             validState = resultErrors.length === 0 ? 'passed' : 'failed';
             validMessage = 'Validation for ' + result.url + ' has ' + validState;
             if (validState === 'failed') {
                 throw validMessage;
+            } else {
+                log('OK    ' + result.url, true);
             }
         }
     };
@@ -95,9 +108,13 @@
             url,
             i;
 
+        log('Initialising');
+
         if (urlArg) {
+            log('Validating single url: ' + urlArg);
             validateUrl(urlArg);
         } else if (configPath) {
+            log('Loading from config ' + configPath);
             config = getConfig(configPath);
             WHITELIST = config.whiteList;
             urls = config.urls;
