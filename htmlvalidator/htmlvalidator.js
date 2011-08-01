@@ -21,8 +21,10 @@
 (function() {
 
 // UPDATE THE FOLLOWING
-var combinerFileName = "htmlvalidator.js";
-var includes = [];
+var combinerFileName = "htmlvalidator.js",
+	includes = [];
+
+includes.push("underscore.js");
 includes.push("json2.js");
 includes.push("sjs.js");
 includes.push("core.js");
