@@ -1590,7 +1590,8 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
             "Legacy doctype",
             "xml:lang"
         ],
-        urls: []
+        urls: [],
+        errorTemplate: '<%= url %>|<%= lastLine %>|<%= message %>'
     };
 
     var log = function(message, force) {
@@ -1619,13 +1620,14 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
     var printError = function(url, message) {
         var msg = message.message
                         .replace(new RegExp(String.fromCharCode(226,8364,339), 'g'), '"')
-                        .replace(new RegExp(String.fromCharCode(226,8364,65533), 'g'), '"');
+                        .replace(new RegExp(String.fromCharCode(226,8364,65533), 'g'), '"'),
+            errTmpl = _.template(config.errorTemplate);
 
-        sjs.print(url + '|' + message.lastLine + '| ' + msg);
-        var charc = message.message.charCodeAt(19),
-            str = String.fromCharCode(charc); // 226,8364,339 - 65533
-
-        sjs.print(charc + ' ' + str);
+        sjs.print(errTmpl({
+            url: url,
+            lastLine: message.lastLine,
+            message: msg
+        }));
     };
     var siftErrors = function(url, messages) {
         var errors = [],
