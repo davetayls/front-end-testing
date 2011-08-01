@@ -1,19 +1,25 @@
-/*jslint browser: true, vars: true, white: true, forin: true, plusplus: true, indent: 4 */
-/*global define,require,sjs,JSON */
+/*jslint browser: true, vars: true, white: true, forin: true, plusplus: true, indent: 4, nomen: true */
+/*global define,require,sjs,JSON,_ */
 
 // display external url
 (function(global){
     'use strict';
 
-    var validatorHost       = 'testing.local:8888',
-        validatorUrl        = 'http://' + validatorHost + '/?level=error&out=json&doc=${url}',
-        debug               = sjs.args().getSingleValue('debug') === 'true',
+    var debug               = sjs.args().getSingleValue('debug') === 'true',
         urlArg              = sjs.args().getSingleValue('url'),
-        configPath          = sjs.args().getSingleValue('config');
+        configPath          = sjs.args().getSingleValue('config'),
+        config;
 
-    var WHITELIST = [
-        'Legacy doctype'
-    ];
+    var DEFAULT_CONFIG = {
+        validatorHost: 'validator.nu',
+        validatorUrl: 'http://<%= validatorHost %>/?level=error&out=json&doc=<%= url %>',
+        whiteList: [
+            "Legacy doctype",
+            "xml:lang"
+        ],
+        urls: []
+    };
+
     var log = function(message, force) {
         if (debug || force) { sjs.print(message); }
     };
@@ -21,17 +27,21 @@
     log('STARTING VALIDATOR');
 
     var getConfig = function(path) {
-        var json = sjs.file(path).readText();
+        var json = sjs.file(path).readText(),
+            options;
         log('Loaded config:');
         log(json);
         if (json) {
-            return JSON.parse(json); 
+            return _.extend({}, DEFAULT_CONFIG, JSON.parse(json)); 
         }
     };
-    var setResult = function(json){
-    };
+
     var getValidationUrl = function(url) {
-        return validatorUrl.replace('${url}', url);
+        var templ = _.template(config.validatorUrl);
+        return templ({
+            url: url,
+            validatorHost: config.validatorHost
+        });
     };
     var printError = function(url, message) {
         var msg = message.message
@@ -55,8 +65,8 @@
             isOk = false;
             message = messages[i];
             messageText = message.message;
-            for (ii = 0; ii < WHITELIST.length; ii++) {
-                var whiteListItem = WHITELIST[ii];
+            for (ii = 0; ii < config.whiteList.length; ii++) {
+                var whiteListItem = config.whiteList[ii];
                 if (typeof whiteListItem === 'string') {
                     if (messageText.indexOf(whiteListItem) >= 0) {
                         isOk = true;
@@ -82,6 +92,7 @@
             validState          = 'failed',
             validMessage,
             resultErrors;
+        log('Using validation url: ' + validationUrl);
         log('Get url ' + url);
         try {
         result = sjs.get(validationUrl);
@@ -103,8 +114,7 @@
     };
 
     var init = function() {
-        var config,
-            urls,
+        var urls,
             url,
             i;
 
@@ -116,7 +126,6 @@
         } else if (configPath) {
             log('Loading from config ' + configPath);
             config = getConfig(configPath);
-            WHITELIST = config.whiteList;
             urls = config.urls;
             for (i = 0; i < urls.length; i++) {
                 url = urls[i];
