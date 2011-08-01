@@ -1,3 +1,23 @@
+/*!
+ * Html Markup Validator
+ * =====================
+ * This validator uses the validator.nu validation service.
+ * We strongly advise to customise it to use your own instance of the validator
+ *
+ * Created by Dave Taylor (http://the-taylors.org)
+ * 
+ * Instructions for use can be found at <http://the-taylors.org/front-end-testing/>
+ * or on the github repository <http://github.com/davetayls/front-end-testing>
+ * 
+ * Licensed under the MIT license. Take a look at the LICENSE file for details.
+ *
+ * This also includes the following open source software:
+ *  - underscore.js
+ *  - json2
+ *
+*/
+
+
 //     Underscore.js 1.1.7
 //     (c) 2011 Jeremy Ashkenas, DocumentCloud Inc.
 //     Underscore is freely distributable under the MIT license.

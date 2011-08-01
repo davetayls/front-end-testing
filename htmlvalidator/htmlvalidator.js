@@ -24,6 +24,7 @@
 var combinerFileName = "htmlvalidator.js",
 	includes = [];
 
+includes.push("header-notice.js");
 includes.push("underscore.js");
 includes.push("json2.js");
 includes.push("sjs.js");
