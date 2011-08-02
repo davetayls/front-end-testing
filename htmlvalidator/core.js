@@ -44,10 +44,13 @@
             validatorHost: config.validatorHost
         });
     };
+    var sanitiseMessage = function(messageText) {
+        var sanitised = messageText.replace(new RegExp(String.fromCharCode(226,8364,339), 'g'), '"')
+                        .replace(new RegExp(String.fromCharCode(226,8364,65533), 'g'), '"');
+        return sanitised;
+    };
     var printError = function(url, message) {
-        var msg = message.message
-                        .replace(new RegExp(String.fromCharCode(226,8364,339), 'g'), '"')
-                        .replace(new RegExp(String.fromCharCode(226,8364,65533), 'g'), '"'),
+        var msg = sanitiseMessage(message.message),
             errTmpl = _.template(config.errorTemplate);
 
         sjs.print(errTmpl({
@@ -66,7 +69,7 @@
         for (i = 0; i < messages.length; i++) {
             isOk = false;
             message = messages[i];
-            messageText = message.message;
+            messageText = sanitiseMessage(message.message);
             for (ii = 0; ii < config.whiteList.length; ii++) {
                 var whiteListItem = config.whiteList[ii];
                 if (typeof whiteListItem === 'string') {
