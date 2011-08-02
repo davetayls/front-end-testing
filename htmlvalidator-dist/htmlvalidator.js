@@ -1,6 +1,8 @@
 /*!
  * Html Markup Validator
  * =====================
+ * Version 1b1, Released: 02/08/2011-16:13:37.33
+ *
  * This validator uses the validator.nu validation service.
  * We strongly advise to customise it to use your own instance of the validator
  *
@@ -11,10 +13,40 @@
  * 
  * Licensed under the MIT license. Take a look at the LICENSE file for details.
  *
- * This also includes the following open source software:
- *  - underscore.js
- *  - json2
+ * Thanks to the following libraries which are used for this
+ *  - underscore.js (http://documentcloud.github.com/underscore/)
+ *  - json2 (https://github.com/douglascrockford/JSON-js)
+ *  - Rivet (https://github.com/davetayls/rivet)
+ *  - sjs (https://github.com/davetayls/sjs)
  *
+ * How to use
+ * ----------
+ * To validate a single url: java -jar js.jar htmlvalidator.js url::http://exampleurl.com
+ *
+ * To validate using a config: java -jar js.jar htmlvalidator.js config::validation.config.json
+ * An example config can be found in the root of the project.
+ * 
+ * Options
+ * -------
+ *  {
+ *      // I recommend changing this to use a personal server
+ *      validatorHost: 'validator.nu', 
+ *
+ *      // OPTIONAL: url template to use
+ *      validatorUrl: 'http://<%= validatorHost %>/?level=error&out=json&doc=<%= url %>',
+ *
+ *      // OPTIONAL: an array of errors to whitelist using a simple contains
+ *      whiteList: [
+ *          "Legacy doctype",
+ *          "xml:lang"
+ *      ],
+ *
+ *      // the urls you want to validate
+ *      urls: [],
+ *
+ *      // OPTIONAL: you can pass in a custom template for logging
+ *      errorTemplate: '<%= url %>|<%= lastLine %>|<%= message %>'
+ *  };
 */
 
 
@@ -1637,10 +1669,13 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
             validatorHost: config.validatorHost
         });
     };
+    var sanitiseMessage = function(messageText) {
+        var sanitised = messageText.replace(new RegExp(String.fromCharCode(226,8364,339), 'g'), '"')
+                        .replace(new RegExp(String.fromCharCode(226,8364,65533), 'g'), '"');
+        return sanitised;
+    };
     var printError = function(url, message) {
-        var msg = message.message
-                        .replace(new RegExp(String.fromCharCode(226,8364,339), 'g'), '"')
-                        .replace(new RegExp(String.fromCharCode(226,8364,65533), 'g'), '"'),
+        var msg = sanitiseMessage(message.message),
             errTmpl = _.template(config.errorTemplate);
 
         sjs.print(errTmpl({
@@ -1659,7 +1694,7 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
         for (i = 0; i < messages.length; i++) {
             isOk = false;
             message = messages[i];
-            messageText = message.message;
+            messageText = sanitiseMessage(message.message);
             for (ii = 0; ii < config.whiteList.length; ii++) {
                 var whiteListItem = config.whiteList[ii];
                 if (typeof whiteListItem === 'string') {
