@@ -13,6 +13,7 @@ or on the github repository <http://github.com/davetayls/front-end-testing>
 Licensed under the MIT license. Take a look at the LICENSE file for details.
 
 Thanks to the following libraries which are used for this
+
  - underscore.js <http://documentcloud.github.com/underscore/>
  - json2 <https://github.com/douglascrockford/JSON-js>
  - Rivet <https://github.com/davetayls/rivet>

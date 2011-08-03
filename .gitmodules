@@ -1,3 +1,9 @@
 [submodule "lib/json"]
 	path = lib/json
 	url = https://github.com/douglascrockford/JSON-js.git
+[submodule "lib/jsLint"]
+	path = lib/jsLint
+	url = https://github.com/douglascrockford/JSLint.git
+[submodule "lib/jshint"]
+	path = lib/jshint
+	url = https://github.com/jshint/jshint.git
