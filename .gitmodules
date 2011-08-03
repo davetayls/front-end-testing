@@ -7,3 +7,6 @@
 [submodule "lib/jshint"]
 	path = lib/jshint
 	url = https://github.com/jshint/jshint.git
+[submodule "lib/sjs"]
+	path = lib/sjs
+	url = git@github.com:davetayls/sjs.git
