@@ -18,6 +18,7 @@
             "xml:lang"
         ],
         urls: [],
+        prefetch: 3,
         errorTemplate: '<%= url %>|<%= lastLine %>|<%= message %>'
     };
 
@@ -96,14 +97,36 @@
             result,
             validState          = 'failed',
             validMessage,
-            resultErrors;
+            resultErrors,
+            fetchOk = false,
+            fetchTimes = config.prefetch;
         log('Using validation url: ' + validationUrl);
         log('Get url ' + url);
+
+        // prefetch urls in case it's initial request and server
+        // takes a long time to respond
+        while (!fetchOk && fetchTimes > 0){
+            log('Prefetching ' + url);
+            try {
+                fetchOk = sjs.get(url);
+            } catch(exc){
+                fetchOk = false;
+            }
+            fetchTimes--;
+        }
+        if (!fetchOk) {
+            throw 'There was a timeout while trying to reach the url ' + url;
+        }
+
+        // request the actual validation
+        log('Requesting validation');
         try {
-        result = sjs.get(validationUrl);
+            result = sjs.get(validationUrl);
         } catch(ex){
             throw 'There was a timeout while trying to reach the validator at this url ' + validationUrl;
         }
+
+        // do something with the result
         if (result) {
             log('Got a result from ' + url);
             result = JSON.parse(result);
