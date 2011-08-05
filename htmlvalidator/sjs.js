@@ -45,13 +45,13 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
 	
 	// global setup
 	var sjs = {
-		version: '@SJS_VERSION',
+		version: '0.5',
 		fileSeparator : javaSystem ? javaSystem.getProperty('file.separator') : '\\',
 		args: function(){
 			if (!commandLineArgs){
-				if(java){
+				if (java) {
 					commandLineArgs = new sjs.Args(global['arguments'],'::');
-				}else if(ActiveXObject){
+				} else if(ActiveXObject){
 					var items = [],
                         i;
 					for (i=0;i<global.WSH.Arguments.length;i+=1){
@@ -67,13 +67,11 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
 		},
         get: function(url, calback) {
             var self = this;
-
 			if (java){
                 return readUrl(url);
 			}else if (WScript){
                 throw 'Sorry this is not implemented yet';
             }
-            
         },
 		load: function(path){
 			if (typeof load !== 'undefined'){
@@ -92,6 +90,20 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
 			} else if (global.WSH){
 				global.WSH.Echo(s);
 			}
+		},
+		printError : function(s){
+			if (typeof print !== 'undefined'){
+                java.lang.System.err.println(s);				
+			} else if (global.WSH){
+				global.WSH.StdErr.WriteLine(s);
+			}
+		},
+		quit: function(code) {
+		    if (java) {
+                java.lang.System.exit(code);
+            } else if (global.WSH) {
+                global.WSH.Quit(code);
+            }
 		},
 		workingDir: function(){
 			if (java){

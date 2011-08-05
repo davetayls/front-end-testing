@@ -25,6 +25,9 @@
     var log = function(message, force) {
         if (debug || force) { sjs.print(message); }
     };
+    var logError = function(message, force) {
+        if (debug || force) { sjs.printError(message); }
+    };
 
     log('STARTING VALIDATOR');
 
@@ -54,7 +57,7 @@
         var msg = sanitiseMessage(message.message),
             errTmpl = _.template(config.errorTemplate);
 
-        sjs.print(errTmpl({
+        sjs.printError(errTmpl({
             url: url,
             lastLine: message.lastLine,
             message: msg
@@ -131,14 +134,16 @@
             log('Got a result from ' + url);
             result = JSON.parse(result);
             resultErrors = siftErrors(result.url, result.messages);
-            validState = resultErrors.length === 0 ? 'passed' : 'failed';
-            validMessage = 'Validation for ' + result.url + ' has ' + validState;
+            validState = resultErrors.length === 0 ? 'passed' : 'FAILED';
+            validMessage = 'VALIDATION FOR ' + result.url + ' HAS ' + validState;
             if (validState === 'failed') {
-                throw validMessage;
+                sjs.printError(validMessage);
+                sjs.quit(1);
             } else {
                 log('OK    ' + result.url, true);
             }
         }
+        sjs.quit();
     };
 
     var init = function() {
