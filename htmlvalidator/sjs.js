@@ -45,7 +45,7 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
 	
 	// global setup
 	var sjs = {
-		version: '0.5',
+		version: '0.5.1',
 		fileSeparator : javaSystem ? javaSystem.getProperty('file.separator') : '\\',
 		args: function(){
 			if (!commandLineArgs){
@@ -99,6 +99,7 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
 			}
 		},
 		quit: function(code) {
+			code = code || 0;
 		    if (java) {
                 java.lang.System.exit(code);
             } else if (global.WSH) {
