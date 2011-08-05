@@ -1,4 +1,4 @@
-set VERNUM=1b5
+set VERNUM=1b6
 cd ..\..
 call git clone -b dist front-end-testing\.git front-end-testing.dist\
 
@@ -17,6 +17,7 @@ cd front-end-testing.dist
 call git add .
 call git tag %VERNUM%
 call git commit -am "release %VERNUM%"
+call git push
 call git push --tags
 
 cd ..
