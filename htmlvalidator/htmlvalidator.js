@@ -1,7 +1,7 @@
 /*!
  * Html Markup Validator
  * =====================
- * Version 1b6, Released: 05/08/2011-11:23:20.16
+ * Version 1b7, Released: 05/08/2011-12:10:02.35
  *
  * This validator uses the validator.nu validation service.
  * We strongly advise to customise it to use your own instance of the validator
@@ -1416,7 +1416,7 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
 	
 	// global setup
 	var sjs = {
-		version: '0.5',
+		version: '0.5.1',
 		fileSeparator : javaSystem ? javaSystem.getProperty('file.separator') : '\\',
 		args: function(){
 			if (!commandLineArgs){
@@ -1470,6 +1470,7 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
 			}
 		},
 		quit: function(code) {
+			code = code || 0;
 		    if (java) {
                 java.lang.System.exit(code);
             } else if (global.WSH) {
