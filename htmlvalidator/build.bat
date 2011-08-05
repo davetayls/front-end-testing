@@ -1,22 +1,21 @@
 set VERNUM=1b2
-cd ..
-rmdir htmlvalidator-dist /s /q
-mkdir htmlvalidator-dist
+cd ..\..
+git clone -b dist front-end-testing\.git front-end-testing.dist\
 
-copy htmlvalidator\*.js htmlvalidator-dist\
-copy htmlvalidator\*.json htmlvalidator-dist\
+rmdir front-end-testing.dist\htmlvalidator /s /q
+mkdir front-end-testing.dist\htmlvalidator
 
-copy htmlvalidator\run*.bat htmlvalidator-dist\
+copy front-end-testing\htmlvalidator\*.js front-end-testing.dist\htmlvalidator\
+copy front-end-testing\htmlvalidator\*.json front-end-testing.dist\htmlvalidator\
 
-copy htmlvalidator\js.jar htmlvalidator-dist\
-call lib\Rivet\Rivet.Console.exe htmlvalidator-dist\ -v:VERSION_NUMBER=%VERNUM% -v:RELEASED="%DATE%-%TIME%"
+copy front-end-testing\htmlvalidator\run*.bat front-end-testing.dist\htmlvalidator\
 
-git checkout dist
-rmdir htmlvalidator
-rename htmlvalidator-dist htmlvalidator
+copy front-end-testing\htmlvalidator\js.jar front-end-testing.dist\htmlvalidator\
+call lib\Rivet\Rivet.Console.exe front-end-testing.dist\htmlvalidator\ -v:VERSION_NUMBER=%VERNUM% -v:RELEASED="%DATE%-%TIME%"
+
+cd front-end-testing.dist
 git add .
 git commit -am "release %VERNUM%"
 git push
-git checkout master
 
 pause
