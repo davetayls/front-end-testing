@@ -1,7 +1,7 @@
 /*!
  * Html Markup Validator
  * =====================
- * Version 1b1, Released: 02/08/2011-16:13:37.33
+ * Version 1b6, Released: 05/08/2011-11:23:20.16
  *
  * This validator uses the validator.nu validation service.
  * We strongly advise to customise it to use your own instance of the validator
@@ -1416,13 +1416,13 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
 	
 	// global setup
 	var sjs = {
-		version: '@SJS_VERSION',
+		version: '0.5',
 		fileSeparator : javaSystem ? javaSystem.getProperty('file.separator') : '\\',
 		args: function(){
 			if (!commandLineArgs){
-				if(java){
+				if (java) {
 					commandLineArgs = new sjs.Args(global['arguments'],'::');
-				}else if(ActiveXObject){
+				} else if(ActiveXObject){
 					var items = [],
                         i;
 					for (i=0;i<global.WSH.Arguments.length;i+=1){
@@ -1438,13 +1438,11 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
 		},
         get: function(url, calback) {
             var self = this;
-
 			if (java){
                 return readUrl(url);
 			}else if (WScript){
                 throw 'Sorry this is not implemented yet';
             }
-            
         },
 		load: function(path){
 			if (typeof load !== 'undefined'){
@@ -1463,6 +1461,20 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
 			} else if (global.WSH){
 				global.WSH.Echo(s);
 			}
+		},
+		printError : function(s){
+			if (typeof print !== 'undefined'){
+                java.lang.System.err.println(s);				
+			} else if (global.WSH){
+				global.WSH.StdErr.WriteLine(s);
+			}
+		},
+		quit: function(code) {
+		    if (java) {
+                java.lang.System.exit(code);
+            } else if (global.WSH) {
+                global.WSH.Quit(code);
+            }
 		},
 		workingDir: function(){
 			if (java){
@@ -1643,11 +1655,15 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
             "xml:lang"
         ],
         urls: [],
+        prefetch: 3,
         errorTemplate: '<%= url %>|<%= lastLine %>|<%= message %>'
     };
 
     var log = function(message, force) {
         if (debug || force) { sjs.print(message); }
+    };
+    var logError = function(message, force) {
+        if (debug || force) { sjs.printError(message); }
     };
 
     log('STARTING VALIDATOR');
@@ -1678,7 +1694,7 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
         var msg = sanitiseMessage(message.message),
             errTmpl = _.template(config.errorTemplate);
 
-        sjs.print(errTmpl({
+        sjs.printError(errTmpl({
             url: url,
             lastLine: message.lastLine,
             message: msg
@@ -1721,26 +1737,50 @@ if (typeof load !== 'undefined'){load(sjsLocation);}else if (typeof ActiveXObjec
             result,
             validState          = 'failed',
             validMessage,
-            resultErrors;
+            resultErrors,
+            fetchOk = false,
+            fetchTimes = config.prefetch;
         log('Using validation url: ' + validationUrl);
         log('Get url ' + url);
+
+        // prefetch urls in case it's initial request and server
+        // takes a long time to respond
+        while (!fetchOk && fetchTimes > 0){
+            log('Prefetching ' + url);
+            try {
+                fetchOk = sjs.get(url);
+            } catch(exc){
+                fetchOk = false;
+            }
+            fetchTimes--;
+        }
+        if (!fetchOk) {
+            throw 'There was a timeout while trying to reach the url ' + url;
+        }
+
+        // request the actual validation
+        log('Requesting validation');
         try {
-        result = sjs.get(validationUrl);
+            result = sjs.get(validationUrl);
         } catch(ex){
             throw 'There was a timeout while trying to reach the validator at this url ' + validationUrl;
         }
+
+        // do something with the result
         if (result) {
             log('Got a result from ' + url);
             result = JSON.parse(result);
             resultErrors = siftErrors(result.url, result.messages);
-            validState = resultErrors.length === 0 ? 'passed' : 'failed';
-            validMessage = 'Validation for ' + result.url + ' has ' + validState;
+            validState = resultErrors.length === 0 ? 'passed' : 'FAILED';
+            validMessage = 'VALIDATION FOR ' + result.url + ' HAS ' + validState;
             if (validState === 'failed') {
-                throw validMessage;
+                sjs.printError(validMessage);
+                sjs.quit(1);
             } else {
                 log('OK    ' + result.url, true);
             }
         }
+        sjs.quit();
     };
 
     var init = function() {
