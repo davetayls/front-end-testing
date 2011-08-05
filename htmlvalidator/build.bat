@@ -1,4 +1,4 @@
-set VERNUM=1b4
+set VERNUM=1b5
 cd ..\..
 call git clone -b dist front-end-testing\.git front-end-testing.dist\
 
